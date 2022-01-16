@@ -41,14 +41,11 @@ __version__ = version.__version__
 
 ABE_APPNAME = "Abe"
 ABE_VERSION = __version__
-ABE_URL = 'https://github.com/bitcoin-abe/bitcoin-abe'
+ABE_URL = 'https://github.com/pacprotocol/pacprotocol-abe'
 
-COPYRIGHT_YEARS = '2011'
-COPYRIGHT = "Abe developers"
-COPYRIGHT_URL = 'https://github.com/bitcoin-abe'
-
-DONATIONS_BTC = '1PWC7PNHL1SgvZaN7xEtygenKjWobWsCuf'
-DONATIONS_NMC = 'NJ3MSELK1cWnqUa6xhF2wUYAnz3RSrWXcK'
+COPYRIGHT_YEARS = '2022'
+COPYRIGHT = "pacprotocol (with thanks to the Abe developers)"
+COPYRIGHT_URL = 'https://github.com/pacprotocol'
 
 TIME1970 = time.strptime('1970-01-01','%Y-%m-%d')
 EPOCH1970 = calendar.timegm(TIME1970)
@@ -78,9 +75,6 @@ DEFAULT_TEMPLATE = """
             Powered by <a href="%(ABE_URL)s">%(APPNAME)s</a>
         </span>
         %(download)s
-        Tips appreciated!
-        <a href="%(dotdot)saddress/%(DONATIONS_BTC)s">BTC</a>
-        <a href="%(dotdot)saddress/%(DONATIONS_NMC)s">NMC</a>
     </p>
 </body>
 </html>
@@ -573,7 +567,11 @@ class Abe:
         body += abe.short_link(page, 'b/' + block_shortlink(b['hash']))
 
         is_stake_chain = chain.has_feature('nvc_proof_of_stake')
-        is_stake_block = is_stake_chain and b['is_proof_of_stake']
+
+        # note: ideally we would just use b['nNonce'] == 0 to determine whether a
+        #       block is pos, however testnet diff is so low that some pow blocks
+        #       have a valid nonce of zero as well.. so go figure..
+        is_stake_block = is_stake_chain and b['height'] > 250
 
         body += ['<p>']
         if is_stake_chain:
@@ -642,10 +640,10 @@ class Abe:
                      '</td><td>']
 
             if tx is b['transactions'][0]:
-                body += [
-                    'POS ' if is_stake_block else '',
-                    'Generation: ', format_satoshis(b['generated'], chain), ' + ',
-                    format_satoshis(b['fees'], chain), ' total fees']
+                if is_stake_block:
+                    body += ['coinstake']
+                else:
+                    body += ['coinbase']
             else:
                 for txin in tx['in']:
                     body += [abe.format_addresses(txin, page['dotdot'], chain), ': ',
@@ -657,9 +655,6 @@ class Abe:
                     if tx is b['transactions'][0]:
                         assert txout['value'] == 0
                         assert len(tx['out']) == 1
-                        body += [
-                            format_satoshis(b['proof_of_stake_generated'], chain),
-                            ' included in the following transaction']
                         continue
                     if txout['value'] == 0:
                         continue
@@ -1399,8 +1394,8 @@ class Abe:
             version, hash = chain.address_version.encode('hex'), arg1
 
         else:
-            # Default: Bitcoin address starting with "1".
-            version, hash = '00', arg1
+            # Default: pacprotocol address starting with "P".
+            version, hash = '37', arg1
 
         try:
             hash = hash.decode('hex')
@@ -2039,8 +2034,6 @@ def create_conf():
             "COPYRIGHT": COPYRIGHT,
             "COPYRIGHT_YEARS": COPYRIGHT_YEARS,
             "COPYRIGHT_URL": COPYRIGHT_URL,
-            "DONATIONS_BTC": DONATIONS_BTC,
-            "DONATIONS_NMC": DONATIONS_NMC,
             "CONTENT_TYPE": DEFAULT_CONTENT_TYPE,
             "HOMEPAGE": DEFAULT_HOMEPAGE,
             },

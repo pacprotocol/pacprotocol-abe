@@ -43,12 +43,9 @@ def determine_db_dir():
 def long_hex(bytes):
     return bytes.encode('hex_codec')
 
-# This function comes from bitcointools, bct-LICENSE.txt.
 def short_hex(bytes):
-    t = bytes.encode('hex_codec')
-    if len(t) < 11:
-        return t
-    return t[0:4]+"..."+t[-4:]
+    # not sure why this would ever be needed in a debug situation...
+    return bytes.encode('hex_codec')
 
 NULL_HASH = "\0" * 32
 GENESIS_HASH_PREV = NULL_HASH

@@ -47,7 +47,8 @@ SCRIPT_TYPE_ADDRESS = 3
 SCRIPT_TYPE_BURN = 4
 SCRIPT_TYPE_MULTISIG = 5
 SCRIPT_TYPE_P2SH = 6
-
+SCRIPT_TYPE_TOKEN = 7
+SCRIPT_TYPE_CHECKSUM = 8
 
 class BaseChain(object):
     POLICY_ATTRS = ['magic', 'name', 'code3', 'address_version', 'decimals', 'script_addr_vers']
@@ -224,5 +225,5 @@ class BaseChain(object):
     def script_hash(chain, script):
         return chain.pubkey_hash(script)
 
-    datadir_conf_file_name = "bitcoin.conf"
-    datadir_rpcport = 8332
+    datadir_conf_file_name = "pacprotocol.conf"
+    datadir_rpcport = 18332

@@ -10,6 +10,7 @@ import socket
 import time
 from util import short_hex, long_hex
 import struct
+from token import *
 
 def parse_CAddress(vds):
   d = {}
@@ -285,12 +286,19 @@ def script_GetOp(bytes):
 
 def script_GetOpName(opcode):
   try:
-    return (opcodes.whatis(opcode)).replace("OP_", "")
+    return (opcodes.whatis(opcode))
   except KeyError:
     return "InvalidOp_"+str(opcode)
 
 def decode_script(bytes):
   result = ''
+  # shortcut to decode token/checksum data
+  for (opcode, vch) in script_GetOp(bytes):
+    if opcode == opcodes.OP_TOKEN:
+      return decode_token(bytes)
+    else:
+      break
+  # .. otherwise business as usual
   for (opcode, vch) in script_GetOp(bytes):
     if len(result) > 0: result += " "
     if opcode <= opcodes.OP_PUSHDATA4:
@@ -310,7 +318,7 @@ def match_decoded(decoded, to_match):
       return False
   return True
 
-def extract_public_key(bytes, version='\x00'):
+def extract_public_key(bytes, version='\x37'):
   try:
     decoded = [ x for x in script_GetOp(bytes) ]
   except struct.error:
